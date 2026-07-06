@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' file:;" />
+  <title>Voicebarn</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">V</div>
+        <div>
+          <div class="brand-name">Voicebarn</div>
+          <div class="brand-sub">Local &middot; Unlimited &middot; Offline TTS</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="editor">📝 Editor</button>
+        <button class="nav-item" data-view="voices">🎙️ Voice Manager</button>
+        <button class="nav-item" data-view="batch">📦 Batch Mode</button>
+        <button class="nav-item" data-view="projects">📁 Projects</button>
+        <button class="nav-item" data-view="settings">⚙️ Settings</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="dot"></span> Text never leaves this machine
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- ===== First-run setup modal ===== -->
+      <div id="setupModal" class="modal-overlay hidden">
+        <div class="modal">
+          <div class="modal-title">Setting up Voicebarn</div>
+          <div class="modal-text" id="setupModalText">Downloading Piper engine + default voice&hellip;</div>
+          <div class="progress-track big"><div class="progress-fill" id="setupModalFill"></div></div>
+          <div class="modal-sub" id="setupModalSub"></div>
+        </div>
+      </div>
+
+      <!-- ===== Editor view ===== -->
+      <section id="view-editor" class="view">
+        <header class="toolbar">
+          <input id="docTitle" class="doc-title-input" value="Untitled document" />
+          <div class="toolbar-right">
+            <span id="engineBadge" class="badge badge-warn">engine: checking&hellip;</span>
+          </div>
+        </header>
+
+        <div class="defaults-bar">
+          <div class="field">
+            <label>Default voice</label>
+            <select id="defaultVoice"></select>
+          </div>
+          <div class="field">
+            <label>Default speed</label>
+            <select id="defaultSpeed">
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1.0x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2.0x</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Export format</label>
+            <select id="exportFormat">
+              <option value="wav">WAV</option>
+              <option value="mp3">MP3</option>
+            </select>
+          </div>
+          <div class="field" id="bitrateField">
+            <label>MP3 bitrate</label>
+            <select id="mp3Bitrate">
+              <option value="128">128 kbps</option>
+              <option value="192" selected>192 kbps</option>
+              <option value="256">256 kbps</option>
+              <option value="320">320 kbps</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn" id="saveProjectBtn">💾 Save</button>
+            <button class="btn btn-primary" id="exportBtn">⬇ Export</button>
+          </div>
+        </div>
+
+        <div class="pause-hint">
+          Pause syntax supported inline in any paragraph: <code>&lt;pause 500ms&gt;</code> or <code>[pause 0.5s]</code>. No other SSML tags are supported — Piper doesn't understand them.
+        </div>
+
+        <div id="paragraphList" class="paragraph-list"></div>
+
+        <button class="btn btn-add" id="addParagraphBtn">+ Add paragraph</button>
+
+        <div id="exportPanel" class="job-panel hidden">
+          <div class="job-row">
+            <div class="job-name">Exporting&hellip;</div>
+            <div class="job-phase" id="exportPhase">Preparing&hellip;</div>
+          </div>
+          <div class="progress-track big"><div class="progress-fill" id="exportFill"></div></div>
+        </div>
+      </section>
+
+      <!-- ===== Voice Manager view ===== -->
+      <section id="view-voices" class="view hidden">
+        <header class="toolbar"><div class="view-title">Voice Manager</div></header>
+        <div class="voice-grid" id="voiceGrid"></div>
+      </section>
+
+      <!-- ===== Batch view ===== -->
+      <section id="view-batch" class="view hidden">
+        <header class="toolbar"><div class="view-title">Batch Mode</div></header>
+        <div class="batch-controls">
+          <button class="btn" id="batchAddFiles">+ Add .txt files</button>
+          <div class="field">
+            <label>Voice</label>
+            <select id="batchVoice"></select>
+          </div>
+          <div class="field">
+            <label>Speed</label>
+            <select id="batchSpeed">
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1.0x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2.0x</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Format</label>
+            <select id="batchFormat">
+              <option value="wav">WAV</option>
+              <option value="mp3">MP3</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Output folder</label>
+            <button class="btn" id="batchOutDirBtn">Choose folder&hellip;</button>
+          </div>
+        </div>
+        <div class="batch-outdir" id="batchOutDirLabel">No output folder chosen</div>
+        <div class="batch-file-list" id="batchFileList"></div>
+        <button class="btn btn-primary" id="batchRunBtn" disabled>Run batch</button>
+        <div id="batchProgress" class="batch-progress"></div>
+      </section>
+
+      <!-- ===== Projects view ===== -->
+      <section id="view-projects" class="view hidden">
+        <header class="toolbar"><div class="view-title">Saved Projects</div></header>
+        <div class="projects-list" id="projectsList"></div>
+      </section>
+
+      <!-- ===== Settings view ===== -->
+      <section id="view-settings" class="view hidden">
+        <header class="toolbar"><div class="view-title">Settings</div></header>
+        <div class="settings-form">
+          <div class="field">
+            <label>Default voice</label>
+            <select id="settingsDefaultVoice"></select>
+          </div>
+          <div class="field">
+            <label>Default speed</label>
+            <select id="settingsDefaultSpeed">
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1.0x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2.0x</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>MP3 bitrate</label>
+            <select id="settingsMp3Bitrate">
+              <option value="128">128 kbps</option>
+              <option value="192" selected>192 kbps</option>
+              <option value="256">256 kbps</option>
+              <option value="320">320 kbps</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Data folder</label>
+            <div class="static-value" id="dataDirValue">&mdash;</div>
+          </div>
+          <button class="btn" id="openDataDirBtn">Open data folder</button>
+          <button class="btn" id="saveSettingsBtn">Save settings</button>
+        </div>
+      </section>
+
+      <audio id="previewAudio" class="hidden"></audio>
+      <div id="toast" class="toast hidden"></div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
