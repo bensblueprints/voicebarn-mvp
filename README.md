@@ -12,7 +12,7 @@ Voicebarn is a desktop app built around [Piper](https://github.com/rhasspy/piper
 
 Don't want to touch a terminal? Grab the packaged Windows installer (one-time purchase, lifetime updates):
 
-**→ [https://whop.com/onetime-suite](https://whop.com/onetime-suite)**
+**→ [https://whop.com/benjisaiempire/voicebarn](https://whop.com/benjisaiempire/voicebarn)**
 
 The source here is MIT-licensed and always will be — the installer is just the convenient, pre-packaged version.
 
