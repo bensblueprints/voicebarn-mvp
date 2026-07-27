@@ -9,6 +9,7 @@ const synth = require('./src/lib/synth');
 const { runBatch } = require('./src/lib/batch');
 const { Projects } = require('./src/lib/projects');
 const { Settings } = require('./src/lib/settings');
+const { gateLicense, registerLicenseIpc } = require('./license-gate');
 
 const SMOKE = process.argv.includes('--smoke');
 let win = null;
@@ -47,7 +48,9 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  if (!(await gateLicense())) return; // quit already requested
+  registerLicenseIpc();
   dataDir = app.getPath('userData');
   projects = new Projects(dataDir);
   settings = new Settings(dataDir);
