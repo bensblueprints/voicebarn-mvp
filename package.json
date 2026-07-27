@@ -1,7 +1,7 @@
 {
   "name": "voicebarn",
   "productName": "Voicebarn",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Unlimited local text-to-speech studio. Pay once, own it forever. Your text never leaves your machine.",
   "main": "main.js",
   "author": "Ben (bensblueprints)",
